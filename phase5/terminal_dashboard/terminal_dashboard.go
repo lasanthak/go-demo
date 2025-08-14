@@ -28,6 +28,7 @@ type model struct {
 	last    lastValues
 	width   int
 	height  int
+	time    string
 	status  string
 }
 
@@ -49,7 +50,8 @@ func initialModel() model {
 			netBytesSent: math.MaxUint64,
 			netBytesRecv: math.MaxUint64,
 		},
-		status: "OK",
+		time:   ":",
+		status: "",
 	}
 }
 
@@ -78,14 +80,20 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		cpuPercent := 0.0
 		if v, e := cpu.Percent(0, false); e == nil {
 			cpuPercent = v[0]
+		} else {
+			m.status += " CPU stats read error"
 		}
 		memPercent := 0.0
 		if v, e := mem.VirtualMemory(); e == nil {
 			memPercent = v.UsedPercent
+		} else {
+			m.status += " Memory stats read error"
 		}
 		diskPercent := 0.0
 		if v, e := disk.Usage("/"); e == nil {
 			diskPercent = v.UsedPercent
+		} else {
+			m.status += " Disk stats read error"
 		}
 		netPercentage := 0.0
 		if v, e := net.IOCounters(false); e == nil && len(v) > 0 {
@@ -102,6 +110,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			m.last.netBytesSent = v[0].BytesSent
 			m.last.netBytesRecv = v[0].BytesRecv
+		} else {
+			m.status += " Network stats read error"
 		}
 
 		m.metrics["CPU"] = cpuPercent
@@ -115,7 +125,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		t := time.Time(msg)
-		m.status = t.Format("3:04:05 PM")
+		m.time = t.Format("3:04:05 PM")
 
 		return m, tea.Tick(time.Second, func(t time.Time) tea.Msg {
 			return tickMsg(t)
@@ -164,12 +174,12 @@ func (m model) View() string {
 	content := strings.Join(metricRows, "\n\n")
 
 	// Add timestamp
-	status := lipgloss.NewStyle().
+	timeBar := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("#626262")).
-		Render(m.status)
+		Render(m.time)
 	footer := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("#626262")).
-		Render("Press 'q' to quit")
+		Render(m.status)
 
 	return lipgloss.JoinVertical(
 		lipgloss.Center,
@@ -177,7 +187,9 @@ func (m model) View() string {
 		"",
 		content,
 		"",
-		status,
+		"",
+		timeBar,
+		"",
 		footer,
 	)
 }

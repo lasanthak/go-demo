@@ -112,6 +112,24 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.width = msg.Width
 		m.height = msg.Height
 
+	case tea.MouseMsg:
+		if msg.Action == tea.MouseActionPress && msg.Button == tea.MouseButtonLeft {
+			// Tabs are rendered in a single row, starting at y=2 (after title)
+			tabRowY := 2
+			if msg.Y == tabRowY {
+				tabNames := []string{"Tasks", "Stats", "Settings"}
+				x := 0
+				for i, name := range tabNames {
+					tabWidth := len(name) + 4 // Approx: 2 border, 2 padding
+					if msg.X >= x && msg.X < x+tabWidth {
+						m.activeTab = tab(i)
+						break
+					}
+					x += tabWidth
+				}
+			}
+		}
+
 	case tea.KeyMsg:
 		if m.inputMode && m.activeTab == tabTasks {
 			return m.updateTaskInput(msg)
