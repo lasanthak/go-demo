@@ -24,7 +24,7 @@ var (
 			BorderForeground(lipgloss.Color("#04B575")).
 			Padding(0, 1)
 
-	activeTabStyle = tabStyle.Copy().
+	activeTabStyle = tabStyle.
 			BorderForeground(lipgloss.Color("#FF5F87"))
 
 	windowStyle = lipgloss.NewStyle().
@@ -35,7 +35,7 @@ var (
 	listItemStyle = lipgloss.NewStyle().
 			PaddingLeft(2)
 
-	selectedItemStyle = listItemStyle.Copy().
+	selectedItemStyle = listItemStyle.
 				Foreground(lipgloss.Color("#FF5F87"))
 )
 
